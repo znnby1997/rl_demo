@@ -8,7 +8,7 @@ sys.path.append('..')
 import toy_env.grid_world as gw
 
 class SARSA:
-    def __init__(self, n_actions, ini_q_table, lr=0.1, gamma=0.99):
+    def __init__(self, n_actions, ini_q_table, lr=0.001, gamma=0.99):
         self.n_actions = n_actions
         self.q_table = q_table
         self.lr = lr
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     sarsa = SARSA(env_info['n_actions'], q_table)
 
     epsilon=0.8
-    epsilon_delta=0.001
+    epsilon_delta=0.01
     epsilon_low_bound=0.01
 
-    for eps in range(1000):
-        epsilon = max(epsilon_low_bound, epsilon - epsilon_delta)
+    for eps in range(200000):
+        epsilon = 0.8 if eps < 5000 else max(epsilon_low_bound, epsilon - epsilon_delta / 1e-3 * (eps - 3000))
         print('episode {} start ...'.format(eps))
         done = False
         total_reward = 0
