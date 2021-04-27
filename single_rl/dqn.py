@@ -85,7 +85,7 @@ class DQN():
         if np.random.uniform() < epsilon:
             return np.random.choice(np.arange(0, n_actions, dtype=int))
         else:
-            return self.tar_q(state).max(0)[1].item()
+            return self.cur_q(state).max(0)[1].item()
     
     def learn(self, minibatch):
         batch_s, batch_a, batch_r, batch_next_s, batch_d = minibatch
@@ -93,6 +93,10 @@ class DQN():
         q_values = self.cur_q(batch_s) # shape: batch, n_actions
         qa_values = q_values.gather(1, batch_a) # shape: batch, 1
 
+        # double dqn
+        # next_max_qa = self.cur_q(batch_next_s).max(1, keepdim=True)[1] # batch, 1
+        # tar_qa_values = self.tar_q(batch_next_s).gather(1, next_max_qa.long()) # batch, 1
+        # target_q = batch_r + self.gamma * tar_qa_values * (1 - batch_d) # batch, 1
         target_q = batch_r + self.gamma * self.tar_q(batch_next_s).max(1, keepdim=True)[0] * (1 - batch_d) # shape: batch, 1
 
         # print(target_q.shape, ' ', qa_values.shape)
@@ -134,7 +138,7 @@ if __name__ == '__main__':
 
     count = 0
 
-    for eps in range(50000):
+    for eps in range(100000):
         print('episode {} start ... '.format(eps))
 
         epsilon = max(epsilon_low_bound, max_epsilon - epsilon_delta * (eps / 200))
