@@ -10,10 +10,6 @@ import tensorboard_easy as te
 import datetime
 import os
 
-import sys
-sys.path.append('..')
-import toy_env.grid_world as gw
-
 '''
     由于需要计算n_steps td，所以需要在buffer中保存所有step之后的每一步reward
 '''
