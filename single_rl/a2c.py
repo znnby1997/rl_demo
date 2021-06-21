@@ -22,15 +22,11 @@ class AC(nn.Module):
         self.fc_pi = nn.Sequential(
             nn.Linear(input_shape, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
             nn.Linear(hidden_dim, n_actions)
         )
 
         self.fc_v = nn.Sequential(
             nn.Linear(input_shape, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
         )
@@ -56,7 +52,7 @@ def computer_target(v_final, r_lst, done_lst, gamma):
 
 
 class A2C():
-    def __init__(self, input_shape, n_actions, hidden_dim=256, lr=2e-4, e_coef=0.02):
+    def __init__(self, input_shape, n_actions, hidden_dim=256, lr=2e-4, e_coef=0.0002):
         self.input_shape = input_shape
         self.n_actions = n_actions
         self.hidden_dim = hidden_dim
@@ -68,8 +64,10 @@ class A2C():
         self.ac_opt = optim.Adam(self.ac.parameters(), lr=lr)
 
 
-    def infer_action(self, state):
+    def infer_action(self, state, print_dis=False):
         a_dis = self.ac.pi(state) # n_actions
+        if print_dis:
+            print('policy output: ', a_dis)
         return Categorical(a_dis).sample().item()
 
     def learn(self, n_step_data):
@@ -107,7 +105,7 @@ def test(step_idx, model):
     for t in range(num_test):
         s = env.reset()
         while not done:
-            a = model.infer_action(torch.from_numpy(s).float())
+            a = model.infer_action(torch.from_numpy(s).float(), True)
             next_s, r, done, _ = env.step(a)
 
             score += r
@@ -123,7 +121,7 @@ if __name__ == '__main__':
     n_actions = env.action_space.n
     state_dim = env.observation_space.shape[0]
 
-    a2c = A2C(state_dim, n_actions, 64)
+    a2c = A2C(state_dim, n_actions, 128)
 
     update_interval = 5
     max_train_steps = 200000
